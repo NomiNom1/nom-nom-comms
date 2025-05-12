@@ -7,7 +7,9 @@ export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
   @Post()
-  async createMessage(@Body() createMessageDto: CreateMessageDto): Promise<MessageResponseDto> {
+  async createMessage(
+    @Body() createMessageDto: CreateMessageDto,
+  ): Promise<MessageResponseDto> {
     return this.messagesService.createMessage(createMessageDto);
   }
 
@@ -32,4 +34,4 @@ export class MessagesController {
   ): Promise<MessageResponseDto[]> {
     return this.messagesService.getConversationHistory(userId1, userId2, limit);
   }
-} 
+}

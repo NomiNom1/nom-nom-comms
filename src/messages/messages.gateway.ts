@@ -17,8 +17,11 @@ import { Logger } from '@nestjs/common';
     origin: '*',
   },
   path: '/ws/messages',
+  transports: ['websocket'],
 })
-export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class MessagesGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -27,19 +30,41 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   constructor(private readonly messagesService: MessagesService) {}
 
-  async handleConnection(client: Socket) {
-    const userId = client.handshake.query.userId as string;
-    if (userId) {
-      this.connectedClients.set(userId, client);
-      this.logger.log(`Client connected: ${userId}`);
+  handleConnection(client: Socket) {
+    try {
+      const userId = client.handshake.query.userId as string;
+      this.logger.log(`Connection attempt from user: ${userId}`);
+
+      if (userId) {
+        this.connectedClients.set(userId, client);
+        this.logger.log(`Client connected: ${userId}`);
+
+        // Send welcome message
+        client.send(
+          JSON.stringify({
+            event: 'connected',
+            data: { userId, message: 'Successfully connected to chat server' },
+          }),
+        );
+      } else {
+        this.logger.warn('Connection attempt without userId');
+        client.close();
+      }
+    } catch (error: any) {
+      this.logger.error(`Error in handleConnection: ${error.message}`);
+      client.close();
     }
   }
 
   handleDisconnect(client: Socket) {
-    const userId = client.handshake.query.userId as string;
-    if (userId) {
-      this.connectedClients.delete(userId);
-      this.logger.log(`Client disconnected: ${userId}`);
+    try {
+      const userId = client.handshake.query.userId as string;
+      if (userId) {
+        this.connectedClients.delete(userId);
+        this.logger.log(`Client disconnected: ${userId}`);
+      }
+    } catch (error: any) {
+      this.logger.error(`Error in handleDisconnect: ${error.message}`);
     }
   }
 
@@ -49,30 +74,43 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     @MessageBody() message: CreateMessageDto,
   ) {
     try {
+      this.logger.log(
+        `Received message from ${message.senderId} to ${message.receiverId}`,
+      );
+
       const savedMessage = await this.messagesService.createMessage(message);
-      
+
       // Send to receiver if online
       const receiverClient = this.connectedClients.get(message.receiverId);
       if (receiverClient) {
-        receiverClient.send(JSON.stringify({
-          event: 'newMessage',
-          data: savedMessage,
-        }));
+        this.logger.log(`Sending message to receiver ${message.receiverId}`);
+        receiverClient.send(
+          JSON.stringify({
+            event: 'newMessage',
+            data: savedMessage,
+          }),
+        );
+      } else {
+        this.logger.log(`Receiver ${message.receiverId} is offline`);
       }
 
       // Send acknowledgment to sender
-      client.send(JSON.stringify({
-        event: 'messageSent',
-        data: savedMessage,
-      }));
+      client.send(
+        JSON.stringify({
+          event: 'messageSent',
+          data: savedMessage,
+        }),
+      );
 
       return savedMessage;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error handling message: ${error.message}`);
-      client.send(JSON.stringify({
-        event: 'error',
-        data: { message: 'Failed to send message' },
-      }));
+      client.send(
+        JSON.stringify({
+          event: 'error',
+          data: { message: 'Failed to send message' },
+        }),
+      );
     }
   }
 
@@ -82,19 +120,25 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
     @MessageBody() data: { messageId: string; userId: string },
   ) {
     try {
+      this.logger.log(
+        `Marking message ${data.messageId} as read by ${data.userId}`,
+      );
+
       await this.messagesService.markMessageAsRead(data.messageId, data.userId);
-      
+
       // Notify sender that message was read
       const message = await this.messagesService.getMessageById(data.messageId);
       const senderClient = this.connectedClients.get(message.senderId);
       if (senderClient) {
-        senderClient.send(JSON.stringify({
-          event: 'messageRead',
-          data: { messageId: data.messageId },
-        }));
+        senderClient.send(
+          JSON.stringify({
+            event: 'messageRead',
+            data: { messageId: data.messageId },
+          }),
+        );
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error marking message as read: ${error.message}`);
     }
   }
-} 
+}

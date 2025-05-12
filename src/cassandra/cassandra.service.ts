@@ -1,6 +1,10 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Client } from 'cassandra-driver';
-import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class CassandraService implements OnModuleInit, OnModuleDestroy {
@@ -9,7 +13,9 @@ export class CassandraService implements OnModuleInit, OnModuleDestroy {
 
   constructor() {
     this.client = new Client({
-      contactPoints: process.env.CASSANDRA_CONTACT_POINTS?.split(',') || ['localhost'],
+      contactPoints: process.env.CASSANDRA_CONTACT_POINTS?.split(',') || [
+        'localhost',
+      ],
       localDataCenter: process.env.CASSANDRA_DATACENTER || 'datacenter1',
       keyspace: process.env.CASSANDRA_KEYSPACE || 'nom_nom_messages',
     });
@@ -21,8 +27,8 @@ export class CassandraService implements OnModuleInit, OnModuleDestroy {
       await this.createKeyspace();
       await this.createTables();
       this.logger.log('Successfully connected to Cassandra');
-    } catch (error) {
-      this.logger.error(`Failed to connect to Cassandra: ${error.message}`);
+    } catch (error: any) {
+      this.logger.error(`Failed to connect to Cassandra: ${error}`);
       throw error;
     }
   }
@@ -73,4 +79,4 @@ export class CassandraService implements OnModuleInit, OnModuleDestroy {
   getClient(): Client {
     return this.client;
   }
-} 
+}

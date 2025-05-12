@@ -1,6 +1,10 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { Kafka, Producer, Consumer } from 'kafkajs';
-import { Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
+import { Consumer, Kafka, Producer } from 'kafkajs';
 
 @Injectable()
 export class KafkaService implements OnModuleInit, OnModuleDestroy {
@@ -16,7 +20,9 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.producer = this.kafka.producer();
-    this.consumer = this.kafka.consumer({ groupId: 'message-processing-group' });
+    this.consumer = this.kafka.consumer({
+      groupId: 'message-processing-group',
+    });
   }
 
   async onModuleInit() {
@@ -37,15 +43,20 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async setupConsumers() {
-    await this.consumer.subscribe({ topic: 'message-events', fromBeginning: true });
-    
+    await this.consumer.subscribe({
+      topic: 'message-events',
+      fromBeginning: true,
+    });
+
     await this.consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
         try {
           const value = message.value?.toString();
           if (value) {
             const event = JSON.parse(value);
-            this.logger.log(`Processing message event: ${JSON.stringify(event)}`);
+            this.logger.log(
+              `Processing message event: ${JSON.stringify(event)}`,
+            );
             // Handle different message events here
           }
         } catch (error: any) {
@@ -70,4 +81,4 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
       throw error;
     }
   }
-} 
+}
