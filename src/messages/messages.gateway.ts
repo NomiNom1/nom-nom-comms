@@ -7,7 +7,8 @@ import {
   ConnectedSocket,
   MessageBody,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'ws';
+import { Server } from 'ws';
+import { Socket } from 'socket.io';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from './dto/message.dto';
 import { Logger } from '@nestjs/common';
@@ -23,7 +24,7 @@ export class MessagesGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   private readonly logger = new Logger(MessagesGateway.name);
   private readonly connectedClients: Map<string, Socket> = new Map();
@@ -48,11 +49,11 @@ export class MessagesGateway
         );
       } else {
         this.logger.warn('Connection attempt without userId');
-        client.close();
+        client.disconnect();
       }
     } catch (error: any) {
       this.logger.error(`Error in handleConnection: ${error.message}`);
-      client.close();
+      client.disconnect();
     }
   }
 
