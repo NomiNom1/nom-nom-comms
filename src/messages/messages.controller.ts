@@ -7,31 +7,31 @@ export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
   @Post()
-  async createMessage(
+  createMessage(
     @Body() createMessageDto: CreateMessageDto,
-  ): Promise<MessageResponseDto> {
+  ): MessageResponseDto {
     return this.messagesService.createMessage(createMessageDto);
   }
 
   @Get(':id')
-  async getMessage(@Param('id') id: string): Promise<MessageResponseDto> {
+  getMessage(@Param('id') id: string): MessageResponseDto {
     return this.messagesService.getMessageById(id);
   }
 
   @Post(':id/read')
-  async markAsRead(
+  markAsRead(
     @Param('id') messageId: string,
     @Body('userId') userId: string,
-  ): Promise<void> {
+  ): void {
     return this.messagesService.markMessageAsRead(messageId, userId);
   }
 
   @Get('conversation/:userId1/:userId2')
-  async getConversationHistory(
+  getConversationHistory(
     @Param('userId1') userId1: string,
     @Param('userId2') userId2: string,
     @Query('limit') limit?: number,
-  ): Promise<MessageResponseDto[]> {
+  ): MessageResponseDto[] {
     return this.messagesService.getConversationHistory(userId1, userId2, limit);
   }
 }

@@ -33,4 +33,4 @@ export class MessageResponseDto {
   type!: MessageType;
   timestamp!: Date;
   status!: 'SENT' | 'DELIVERED' | 'READ';
-} 
+}

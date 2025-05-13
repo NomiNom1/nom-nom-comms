@@ -5,4 +5,4 @@ import { CassandraService } from './cassandra.service';
   providers: [CassandraService],
   exports: [CassandraService],
 })
-export class CassandraModule {} 
+export class CassandraModule {}

@@ -70,7 +70,7 @@ export class MessagesGateway
   }
 
   @SubscribeMessage('sendMessage')
-  async handleMessage(
+  handleMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody() message: CreateMessageDto,
   ) {
@@ -79,7 +79,7 @@ export class MessagesGateway
         `Received message from ${message.senderId} to ${message.receiverId}`,
       );
 
-      const savedMessage = await this.messagesService.createMessage(message);
+      const savedMessage = this.messagesService.createMessage(message);
 
       // Send to receiver if online
       const receiverClient = this.connectedClients.get(message.receiverId);
@@ -116,7 +116,7 @@ export class MessagesGateway
   }
 
   @SubscribeMessage('markAsRead')
-  async handleMarkAsRead(
+  handleMarkAsRead(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { messageId: string; userId: string },
   ) {
@@ -125,10 +125,10 @@ export class MessagesGateway
         `Marking message ${data.messageId} as read by ${data.userId}`,
       );
 
-      await this.messagesService.markMessageAsRead(data.messageId, data.userId);
+      this.messagesService.markMessageAsRead(data.messageId, data.userId);
 
       // Notify sender that message was read
-      const message = await this.messagesService.getMessageById(data.messageId);
+      const message = this.messagesService.getMessageById(data.messageId);
       const senderClient = this.connectedClients.get(message.senderId);
       if (senderClient) {
         senderClient.send(
