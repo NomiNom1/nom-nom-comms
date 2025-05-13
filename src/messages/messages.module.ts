@@ -11,4 +11,4 @@ import { KafkaModule } from '../kafka/kafka.module';
   providers: [MessagesService, MessagesGateway],
   exports: [MessagesService],
 })
-export class MessagesModule {} 
+export class MessagesModule {}
