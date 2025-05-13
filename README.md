@@ -102,3 +102,7 @@ Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 
 # Prompts
 I am creating an iOS Swift app similar to Doordash, Uber Eats, and Grubhub. This is the messaging service part of it. Follow google / meta best practices for highly scalabe app design the size of TikTok, Instagram, or WeChat. The tools are nestjs, typescript, ws, Cassandra, kafka.
+
+
+watch:
+https://www.youtube.com/watch?v=4h9-c6D5Pos
