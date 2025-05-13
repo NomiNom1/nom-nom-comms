@@ -7,7 +7,7 @@ import {
   ConnectedSocket,
   MessageBody,
 } from '@nestjs/websockets';
-import { Server } from 'ws';
+import { Server } from 'socket.io';
 import { Socket } from 'socket.io';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from './dto/message.dto';
@@ -18,7 +18,6 @@ import { Logger } from '@nestjs/common';
     origin: '*',
   },
   path: '/ws/messages',
-  transports: ['websocket'],
 })
 export class MessagesGateway
   implements OnGatewayConnection, OnGatewayDisconnect
@@ -41,12 +40,10 @@ export class MessagesGateway
         this.logger.log(`Client connected: ${userId}`);
 
         // Send welcome message
-        client.send(
-          JSON.stringify({
-            event: 'connected',
-            data: { userId, message: 'Successfully connected to chat server' },
-          }),
-        );
+        client.emit('connected', {
+          userId,
+          message: 'Successfully connected to chat server',
+        });
       } else {
         this.logger.warn('Connection attempt without userId');
         client.disconnect();
@@ -85,33 +82,18 @@ export class MessagesGateway
       const receiverClient = this.connectedClients.get(message.receiverId);
       if (receiverClient) {
         this.logger.log(`Sending message to receiver ${message.receiverId}`);
-        receiverClient.send(
-          JSON.stringify({
-            event: 'newMessage',
-            data: savedMessage,
-          }),
-        );
+        receiverClient.emit('newMessage', savedMessage);
       } else {
         this.logger.log(`Receiver ${message.receiverId} is offline`);
       }
 
       // Send acknowledgment to sender
-      client.send(
-        JSON.stringify({
-          event: 'messageSent',
-          data: savedMessage,
-        }),
-      );
+      client.emit('messageSent', savedMessage);
 
       return savedMessage;
     } catch (error: any) {
       this.logger.error(`Error handling message: ${error.message}`);
-      client.send(
-        JSON.stringify({
-          event: 'error',
-          data: { message: 'Failed to send message' },
-        }),
-      );
+      client.emit('error', { message: 'Failed to send message' });
     }
   }
 
@@ -131,12 +113,7 @@ export class MessagesGateway
       const message = this.messagesService.getMessageById(data.messageId);
       const senderClient = this.connectedClients.get(message.senderId);
       if (senderClient) {
-        senderClient.send(
-          JSON.stringify({
-            event: 'messageRead',
-            data: { messageId: data.messageId },
-          }),
-        );
+        senderClient.emit('messageRead', { messageId: data.messageId });
       }
     } catch (error: any) {
       this.logger.error(`Error marking message as read: ${error.message}`);
