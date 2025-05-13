@@ -8,11 +8,11 @@ export enum MessageType {
 }
 
 export class CreateMessageDto {
-  @IsUUID()
+  // @IsUUID()
   @IsNotEmpty()
   senderId!: string;
 
-  @IsUUID()
+  // @IsUUID()
   @IsNotEmpty()
   receiverId!: string;
 

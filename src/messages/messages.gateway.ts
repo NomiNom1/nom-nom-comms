@@ -7,8 +7,7 @@ import {
   ConnectedSocket,
   MessageBody,
 } from '@nestjs/websockets';
-import { Server } from 'socket.io';
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from './dto/message.dto';
 import { Logger } from '@nestjs/common';
@@ -17,8 +16,8 @@ import { Logger } from '@nestjs/common';
   cors: {
     origin: '*',
   },
-  path: '/ws/messages',
 })
+
 export class MessagesGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -33,7 +32,6 @@ export class MessagesGateway
   handleConnection(client: Socket) {
     try {
       const userId = client.handshake.query.userId as string;
-      this.logger.log(`Connection attempt from user: ${userId}`);
 
       if (userId) {
         this.connectedClients.set(userId, client);
@@ -60,7 +58,11 @@ export class MessagesGateway
       if (userId) {
         this.connectedClients.delete(userId);
         this.logger.log(`Client disconnected: ${userId}`);
+        client.broadcast.emit("user-left", {
+          message: `User ${client.id} has disconnected`,
+        });
       }
+
     } catch (error: any) {
       this.logger.error(`Error in handleDisconnect: ${error.message}`);
     }
