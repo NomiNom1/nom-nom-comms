@@ -1,3 +1,18 @@
+// TODO: different topics to consider
+// - chat.messages - track all messages
+// - chat.conversations - track all conversations
+// - user.presence - track user online/offline status
+// - chat.typing-indicators - track when a user is typing
+// - chat.delivery-receipts - track when a message is delivered
+// - chat.read-receipts - track when a user reads a message
+// - chat.message-edits - track when a message is edited
+// - chat.message-deletions - track when a message is deleted
+// - chat.reactions - track when a user reacts to a message
+// - chat.notifications - track when a user is notified of a new message
+// - chat.replies - track when a user replies to a message
+// - chat.threads - track when a user starts a thread
+// - chat.thread-replies - track when a user replies to a thread
+
 // import {
 //   Injectable,
 //   Logger,

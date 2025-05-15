@@ -5,10 +5,12 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { Client } from 'cassandra-driver';
+import { DataAPIClient } from "@datastax/astra-db-ts";
 
 @Injectable()
 export class CassandraService implements OnModuleInit, OnModuleDestroy {
   private readonly client: Client;
+  private readonly clientv1: DataAPIClient;
   private readonly logger = new Logger(CassandraService.name);
 
   constructor() {
@@ -19,6 +21,8 @@ export class CassandraService implements OnModuleInit, OnModuleDestroy {
       localDataCenter: process.env.CASSANDRA_DATACENTER || 'datacenter1',
       keyspace: process.env.CASSANDRA_KEYSPACE || 'nom_nom_messages',
     });
+    this.clientv1 = new DataAPIClient(process.env.ASTRA_DB_TOKEN);
+    const db = this.clientv1.db('https://3ba37e55-d09a-4e32-9f77-26e480d7dbc8-us-east-2.apps.astra.datastax.com');
   }
 
   async onModuleInit() {
